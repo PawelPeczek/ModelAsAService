@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, Response, make_response
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
 
@@ -13,6 +13,7 @@ from .model import db
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = \
     f'{DB_ENGINE}://{DB_USER}:{DB_SECRET}@{DB_HOST}/{DB_NAME}'
+app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = JWT_SECRET
 jwt = JWTManager(app)

@@ -12,7 +12,7 @@ class Register(CredentialsBasedResource):
         user_with_given_login = User.find_by_login(login=data['login'])
         if user_with_given_login is not None:
             return make_response(
-                {'message': 'User with given login already exists.'}, 409
+                {'msg': 'User with given login already exists.'}, 409
             )
         try:
             new_user = User(login=data['login'], access_level=1)
@@ -21,7 +21,7 @@ class Register(CredentialsBasedResource):
             return make_response({'message': 'OK'}, 200)
         except SQLAlchemyError:
             return make_response(
-                {'message': 'Request could not be processed.'}, 500
+                {'msg': 'Request could not be processed.'}, 500
             )
 
 
@@ -35,7 +35,7 @@ class VerifyCredentials(CredentialsBasedResource):
         )
         if user is None:
             return make_response(
-                {'message': 'Login try failed.'}, 403
+                {'msg': 'Login try failed.'}, 403
             )
         return make_response(
             {'login': user.login, 'access_level': user.access_level}

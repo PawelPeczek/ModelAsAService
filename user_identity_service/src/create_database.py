@@ -1,13 +1,16 @@
 import argparse
 import logging
 
+from .app import app
 from .model import db, User, persist_model_instance
+
 
 logging.getLogger().setLevel(logging.INFO)
 
 
 def create_database(root_user_name: str, root_password: str) -> None:
     # create database structure
+    app.app_context().push()
     db.create_all()
 
     # Create root user
@@ -20,8 +23,16 @@ def create_database(root_user_name: str, root_password: str) -> None:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("Script to initialize database.")
-    parser.add_argument("--root_user_name", help="Main user login.")
-    parser.add_argument("--root_password", help="Main user password.")
+    parser.add_argument(
+        "--root_user_name",
+        help="Main user login.",
+        required=True
+    )
+    parser.add_argument(
+        "--root_password",
+        help="Main user password.",
+        required=True
+    )
 
     args = parser.parse_args()
 

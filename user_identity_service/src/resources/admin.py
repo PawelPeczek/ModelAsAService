@@ -4,6 +4,7 @@ from flask_restful import Resource, reqparse
 from flask import Response, make_response
 from sqlalchemy.exc import SQLAlchemyError
 
+from ..privileges import Privilege
 from .generic import CredentialsBasedResource
 from ..model import User, commit_db_changes, remove_from_db
 
@@ -16,9 +17,9 @@ class AdminLogin(CredentialsBasedResource):
             login=data['login'],
             password=data['password']
         )
-        if user is None or user.access_level < 3:
+        if user is None or user.access_level < Privilege.ADMIN.value:
             return make_response(
-                {'message': 'Admin mode login failed.'}, 403
+                {'msg': 'Admin mode login failed.'}, 403
             )
         access_token = create_access_token(
             identity=user.login, user_claims={'access_level': user.access_level}
@@ -48,11 +49,11 @@ class AdminLevelControlResource(Resource):
 
     def _admin_cannot_control_user(self, user: User) -> bool:
         admin_level = self.__fetch_admin_level()
-        return admin_level > user.access_level or admin_level == 4
+        return admin_level < user.access_level
 
     def __fetch_admin_level(self) -> int:
         user_claims = get_jwt_claims()
-        return user_claims['access_level']
+        return int(user_claims['access_level'])
 
 
 class ChangeAccessLevel(AdminLevelControlResource):
@@ -66,13 +67,13 @@ class ChangeAccessLevel(AdminLevelControlResource):
         new_access_level = data['new_access_level']
         if self.__access_level_invalid(level=new_access_level):
             return make_response(
-                {'message': 'Access level must be integer from range <1;3>'},
+                {'msg': 'Access level must be integer from range <1;3>'},
                 422
             )
         user = User.find_by_login(login=data['login'])
         if user is None or self._admin_cannot_control_user(user=user):
             return make_response(
-                {'message': 'User does not exist or cannot be modify.'},
+                {'msg': 'User does not exist or cannot be modify.'},
                 422
             )
         user.access_level = new_access_level
@@ -80,9 +81,9 @@ class ChangeAccessLevel(AdminLevelControlResource):
             commit_db_changes()
         except SQLAlchemyError:
             return make_response(
-                {'message': 'Request could not be processed.'}, 500
+                {'msg': 'Request could not be processed.'}, 500
             )
-        return make_response({'message': 'OK'}, 200)
+        return make_response({'msg': 'OK'}, 200)
 
     def __initialize_request_parser(self) -> reqparse.RequestParser:
         parser = reqparse.RequestParser()
@@ -100,7 +101,8 @@ class ChangeAccessLevel(AdminLevelControlResource):
         return parser
 
     def __access_level_invalid(self, level: int) -> bool:
-        return level < 1 or level > 3
+        return level < Privilege.ASYNCHRONOUS_USER.value or \
+            level > Privilege.ADMIN.value
 
 
 class DeleteUser(AdminLevelControlResource):
@@ -114,16 +116,16 @@ class DeleteUser(AdminLevelControlResource):
         user = User.find_by_login(login=data['login'])
         if user is None or self._admin_cannot_control_user(user=user):
             make_response(
-                {'message': 'User does not exist or cannot be modify.'},
+                {'msg': 'User does not exist or cannot be modify.'},
                 422
             )
         try:
             remove_from_db(instance=user)
         except SQLAlchemyError:
             return make_response(
-                {'message': 'Request could not be processed.'}, 500
+                {'msg': 'Request could not be processed.'}, 500
             )
-        return make_response({'message': 'OK'}, 200)
+        return make_response({'msg': 'OK'}, 200)
 
     def __initialize_request_parser(self) -> reqparse.RequestParser:
         parser = reqparse.RequestParser()
@@ -141,7 +143,7 @@ class AdminLogoutAccessToken(Resource):
 
     @jwt_required
     def post(self):
-        return make_response({'message': 'OK'}, 200)
+        return make_response({'msg': 'OK'}, 200)
 
 
 class AdminLogoutRefreshToken(Resource):
@@ -150,4 +152,4 @@ class AdminLogoutRefreshToken(Resource):
 
     @jwt_refresh_token_required
     def post(self):
-        return make_response({'message': 'OK'}, 200)
+        return make_response({'msg': 'OK'}, 200)
