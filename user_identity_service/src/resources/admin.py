@@ -49,6 +49,7 @@ class AdminLevelControlResource(Resource):
 
     def _admin_cannot_control_user(self, user: User) -> bool:
         admin_level = self.__fetch_admin_level()
+        print(f'Admin level {admin_level} vs {user.access_level} user level')
         return admin_level < user.access_level
 
     def __fetch_admin_level(self) -> int:
@@ -115,7 +116,7 @@ class DeleteUser(AdminLevelControlResource):
         data = self.__parser.parse_args()
         user = User.find_by_login(login=data['login'])
         if user is None or self._admin_cannot_control_user(user=user):
-            make_response(
+            return make_response(
                 {'msg': 'User does not exist or cannot be modify.'},
                 422
             )
