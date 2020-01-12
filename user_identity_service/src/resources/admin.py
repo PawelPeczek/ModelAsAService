@@ -19,7 +19,7 @@ class AdminLogin(CredentialsBasedResource):
         )
         if user is None or user.access_level < Privilege.ADMIN.value:
             return make_response(
-                {'msg': 'Admin mode login failed.'}, 403
+                {'msg': 'Admin mode login failed.'}, 401
             )
         access_token = create_access_token(
             identity=user.login, user_claims={'access_level': user.access_level}

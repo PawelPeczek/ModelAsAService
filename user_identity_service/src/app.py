@@ -1,4 +1,4 @@
-from flask import Flask, Response, make_response
+from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
 
@@ -6,13 +6,13 @@ from .resources.admin import AdminLogin, AdminTokenRefresh, \
     ChangeAccessLevel, AdminLogoutAccessToken, AdminLogoutRefreshToken, \
     DeleteUser
 from .resources.user import Register, VerifyCredentials
-from .config import DB_ENGINE, DB_USER, DB_SECRET, DB_HOST, DB_NAME, \
-    JWT_SECRET, SERVICE_NAME, API_VERSION, SERVICE_PORT
+from .config import JWT_SECRET, SERVICE_NAME, API_VERSION,\
+    SERVICE_PORT, DB_CONN_STRING
 from .model import db
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = \
-    f'{DB_ENGINE}://{DB_USER}:{DB_SECRET}@{DB_HOST}/{DB_NAME}'
+app.config['SQLALCHEMY_DATABASE_URI'] = DB_CONN_STRING
+
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = JWT_SECRET
