@@ -49,8 +49,6 @@ def _add_service() -> None:
     service_name = _get_user_info(description='Type service name')
     service_password = _get_user_info(description='Type service password')
     new_service = Service(service_name=service_name)
-    print(f'serv passwd: {service_password} {len(service_password)}')
-    print(generate_password_hash(password=service_password))
     new_service.set_password(password=service_password)
     persist_model_instance(instance=new_service)
 

@@ -5,7 +5,7 @@ from flask_restful import Resource, reqparse
 from .model import Service
 
 
-class VerifyServiceIdentity(Resource):
+class ServiceIdentityResource(Resource):
 
     def __init__(self, token_secret: str):
         self.__parser = self.__initialize_request_parser()
@@ -22,7 +22,9 @@ class VerifyServiceIdentity(Resource):
                 {'msg': 'Service login failed.'}, 401
             )
         service_access_token = jwt.encode(
-            payload={}, key=self.__token_secret, algorithm='HS256'
+            payload={'identity': data['service_name']},
+            key=self.__token_secret,
+            algorithm='HS256'
         )
         response_body = {
             'token_secret': self.__token_secret,
@@ -34,7 +36,7 @@ class VerifyServiceIdentity(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument(
             'service_name',
-            help='Field "login" must be specified in this request.',
+            help='Field "service_name" must be specified in this request.',
             required=True
         )
         parser.add_argument(

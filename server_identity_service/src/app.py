@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_restful import Api
 
-from .resources import VerifyServiceIdentity
+from .resources import ServiceIdentityResource
 from .config import SERVICE_PORT, API_VERSION, SERVICE_NAME, TOKEN_SECRET, \
     DB_CONN_STRING
 from .model import db
@@ -16,7 +16,7 @@ db.init_app(app)
 def create_api() -> Api:
     api = Api(app)
     api.add_resource(
-        VerifyServiceIdentity,
+        ServiceIdentityResource,
         construct_api_url('/verify_service_identity'),
         resource_class_kwargs={'token_secret': TOKEN_SECRET}
     )
