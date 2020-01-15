@@ -1,4 +1,3 @@
-import json
 import logging
 from time import sleep
 from typing import Tuple
@@ -7,17 +6,19 @@ import requests
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from .resources import ServiceLocationResource
-from .config import SERVICE_PORT, API_VERSION, SERVICE_NAME, DB_CONN_STRING, \
+from .config import API_VERSION, SERVICE_NAME, DB_CONN_STRING, \
     SERVER_IDENTITY_URL, SERVICE_SECRET
-from .model import db
+from .model import db, ServiceLocation
 
 app = Flask(__name__)
+db.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_CONN_STRING
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(app)
 
 jwt = JWTManager(app)
 
@@ -53,6 +54,23 @@ def _fetch_config_from_identity_service() -> Tuple[str, str]:
         return _fetch_config_from_identity_service()
 
 
+def fetch_service_port() -> int:
+    engine = create_engine(DB_CONN_STRING, echo=False)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    query = \
+        session.query(ServiceLocation).filter_by(service_name=SERVICE_NAME)
+    service_location = session.execute(query).first()
+    session.close()
+    if service_location is None:
+        raise RuntimeError(
+            f'Cannnot find service location for service {SERVICE_NAME}'
+        )
+    else:
+        return service_location[3]
+
+
 if __name__ == '__main__':
     api = create_api()
-    app.run(host='0.0.0.0', port=SERVICE_PORT, ssl_context='adhoc')
+    service_port = fetch_service_port()
+    app.run(host='0.0.0.0', port=service_port, ssl_context='adhoc')

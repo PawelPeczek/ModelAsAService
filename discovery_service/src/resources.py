@@ -53,6 +53,6 @@ class ServiceLocationResource(Resource):
             'service_names',
             help=help_msg,
             required=True,
-            action = 'append'
+            action='append'
         )
         return parser

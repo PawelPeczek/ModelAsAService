@@ -81,8 +81,8 @@ def _list_services_locations() -> None:
     all_services = ServiceLocation.get_all()
     for service in all_services:
         print(
-            f'{service.service_name} - {service.service_address} - '
-            f'{service.service_port}'
+            f'{service.service_name} - '
+            f'{service.service_address} - {service.service_port}'
         )
 
 

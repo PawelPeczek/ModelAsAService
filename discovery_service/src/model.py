@@ -1,7 +1,6 @@
 from typing import Optional, List
 
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
@@ -38,5 +37,3 @@ class ServiceLocation(db.Model):
     @classmethod
     def get_all(cls) -> List['ServiceLocation']:
         return cls.query.all()
-
-

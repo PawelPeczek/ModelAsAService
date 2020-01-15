@@ -1,4 +1,5 @@
 from flask import Response, make_response
+from flask_jwt_extended import jwt_required
 from sqlalchemy.exc import SQLAlchemyError
 
 from .generic import CredentialsBasedResource
@@ -7,6 +8,7 @@ from ..model import User, persist_model_instance
 
 class Register(CredentialsBasedResource):
 
+    @jwt_required
     def post(self) -> Response:
         data = self._parser.parse_args()
         user_with_given_login = User.find_by_login(login=data['login'])
@@ -27,6 +29,7 @@ class Register(CredentialsBasedResource):
 
 class VerifyCredentials(CredentialsBasedResource):
 
+    @jwt_required
     def post(self) -> Response:
         data = self._parser.parse_args()
         user = User.find_by_credentials(

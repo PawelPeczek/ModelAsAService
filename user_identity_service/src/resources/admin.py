@@ -22,10 +22,14 @@ class AdminLogin(CredentialsBasedResource):
                 {'msg': 'Admin mode login failed.'}, 401
             )
         access_token = create_access_token(
-            identity=user.login, user_claims={'access_level': user.access_level}
+            identity=user.login,
+            user_claims={'access_level': user.access_level},
+            headers={'admin_resource_protection': True}
         )
         refresh_token = create_refresh_token(
-            identity=user.login, user_claims={'access_level': user.access_level}
+            identity=user.login,
+            user_claims={'access_level': user.access_level},
+            headers={'admin_resource_protection': True}
         )
         return make_response(
             {'access_token': access_token, 'refresh_token': refresh_token}, 200
