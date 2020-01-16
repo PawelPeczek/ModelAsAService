@@ -8,6 +8,7 @@ from flask_jwt_extended import JWTManager
 from flask_restful import Api
 from requests import Response
 
+from .resources.synchronous import ProcessingPipeline
 from .resources.users import Register, Login, TokenRefresh, LogoutAccessToken, \
     LogoutRefreshToken
 from .config import API_VERSION, SERVICE_NAME, \
@@ -26,7 +27,12 @@ def create_api() -> Api:
     jwt_secret, INTER_SERVICES_TOKEN = _fetch_config_from_identity_service()
     app.config['JWT_SECRET_KEY'] = jwt_secret
     api = Api(app)
-    services_info = _fetch_services_info(services=['user_identity_service'])
+    services_info = _fetch_services_info(
+        services=[
+            'user_identity_service', 'people_detection_service',
+            'face_detection_service', 'age_estimation_service'
+        ]
+    )
     user_identity_url = \
         f"{services_info['user_identity_service']['service_address']}:" \
         f"{services_info['user_identity_service']['service_port']}"
@@ -57,6 +63,25 @@ def create_api() -> Api:
     api.add_resource(
         LogoutRefreshToken,
         construct_api_url('/logout_refresh'),
+    )
+    people_detection_url = \
+        f"{services_info['people_detection_service']['service_address']}:" \
+        f"{services_info['people_detection_service']['service_port']}"
+    face_detection_url = \
+        f"{services_info['face_detection_service']['service_address']}:" \
+        f"{services_info['face_detection_service']['service_port']}"
+    age_estimation_url = \
+        f"{services_info['age_estimation_service']['service_address']}:" \
+        f"{services_info['age_estimation_service']['service_port']}"
+    api.add_resource(
+        ProcessingPipeline,
+        construct_api_url('/sync/process_image'),
+        resource_class_kwargs={
+            'base_people_detection_url': people_detection_url,
+            'base_face_detection_url': face_detection_url,
+            'base_age_estimation_url': age_estimation_url,
+            'inter_services_token': INTER_SERVICES_TOKEN
+        }
     )
     return api
 
