@@ -2,17 +2,21 @@ import logging
 from time import sleep
 from typing import Tuple, List, Dict
 
+import pika
 import requests
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
 from requests import Response
 
+from .resources.asynchronous import \
+    AsynchronousProcessingStart
 from .resources.synchronous import ProcessingPipeline
 from .resources.users import Register, Login, TokenRefresh, LogoutAccessToken, \
     LogoutRefreshToken
 from .config import API_VERSION, SERVICE_NAME, \
-    SERVER_IDENTITY_URL, DISCOVERY_URL, SERVICE_SECRET, JWT_SECRET
+    SERVER_IDENTITY_URL, DISCOVERY_URL, SERVICE_SECRET, JWT_SECRET, \
+    OBJECT_DETECTION_CHANNEL
 
 app = Flask(__name__)
 app.config['PROPAGATE_EXCEPTIONS'] = True
@@ -20,6 +24,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = JWT_SECRET
 jwt = JWTManager(app)
 INTER_SERVICES_TOKEN = None
+MESSAGE_CHANNEL = None
 
 
 def create_api() -> Api:
@@ -30,9 +35,18 @@ def create_api() -> Api:
     services_info = _fetch_services_info(
         services=[
             'user_identity_service', 'people_detection_service',
-            'face_detection_service', 'age_estimation_service'
+            'face_detection_service', 'age_estimation_service',
+            'message_broker', 'resource_manager_service'
         ]
     )
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(
+            host=services_info['message_broker']['service_address'],
+            port=services_info['message_broker']['service_port']
+        )
+    )
+    channel = connection.channel()
+    channel.queue_declare(queue=OBJECT_DETECTION_CHANNEL)
     user_identity_url = \
         f"{services_info['user_identity_service']['service_address']}:" \
         f"{services_info['user_identity_service']['service_port']}"
@@ -73,6 +87,9 @@ def create_api() -> Api:
     age_estimation_url = \
         f"{services_info['age_estimation_service']['service_address']}:" \
         f"{services_info['age_estimation_service']['service_port']}"
+    base_resources_manager_path = \
+        f"{services_info['resource_manager_service']['service_address']}:" \
+        f"{services_info['resource_manager_service']['service_port']}"
     api.add_resource(
         ProcessingPipeline,
         construct_api_url('/sync/process_image'),
@@ -81,6 +98,15 @@ def create_api() -> Api:
             'base_face_detection_url': face_detection_url,
             'base_age_estimation_url': age_estimation_url,
             'inter_services_token': INTER_SERVICES_TOKEN
+        }
+    )
+    api.add_resource(
+        AsynchronousProcessingStart,
+        construct_api_url('/async/process_image'),
+        resource_class_kwargs={
+            'base_resources_manager_path': base_resources_manager_path,
+            'inter_services_token': INTER_SERVICES_TOKEN,
+            'message_channel': channel
         }
     )
     return api

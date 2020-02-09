@@ -70,7 +70,6 @@ def _fetch_config_from_identity_service() -> Tuple[str, str]:
 
 
 def _call_discovery_resource(services: List[str]) -> Response:
-    print(INTER_SERVICES_TOKEN)
     headers = {'Authorization': f'Bearer {INTER_SERVICES_TOKEN}'}
     payload = {'service_names': services}
     return requests.post(

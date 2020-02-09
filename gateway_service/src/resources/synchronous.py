@@ -34,7 +34,9 @@ class ProcessingPipeline(Resource):
         return self.__processing_started(raw_image=raw_image)
 
     def __processing_started(self, raw_image: bytes) -> Response:
-        headers = {'Authorization': f'Bearer {self.__inter_services_token}'}
+        headers = {
+            'Authorization': f'Bearer {self.__inter_services_token}'
+        }
         files = {'image': raw_image}
         url = f'{self.__base_people_detection_url}/v1/people_detection_service/' \
             f'detect_people'
