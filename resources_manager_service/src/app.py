@@ -7,7 +7,7 @@ from flask import Flask, Response
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
 
-from resources_manager_service.src.resources import InputRegistrationResource, \
+from .resources import InputRegistrationResource, \
     IntermediateResultRegistrationResource, IntermediateResultFetchingResource, \
     InputFetchingResource, BatchFetchingResource
 from .config import API_VERSION, SERVICE_NAME, SERVER_IDENTITY_URL, \
@@ -22,7 +22,8 @@ INTER_SERVICES_TOKEN = None
 
 
 def create_api() -> Api:
-    jwt_secret, _ = _fetch_config_from_identity_service()
+    global INTER_SERVICES_TOKEN
+    jwt_secret, INTER_SERVICES_TOKEN = _fetch_config_from_identity_service()
     app.config['JWT_SECRET_KEY'] = jwt_secret
     api = Api(app)
     api.add_resource(
@@ -69,6 +70,7 @@ def _fetch_config_from_identity_service() -> Tuple[str, str]:
 
 
 def _call_discovery_resource(services: List[str]) -> Response:
+    print(INTER_SERVICES_TOKEN)
     headers = {'Authorization': f'Bearer {INTER_SERVICES_TOKEN}'}
     payload = {'service_names': services}
     return requests.post(

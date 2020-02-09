@@ -14,7 +14,7 @@ DISCOVERY_URL = \
     f'{DISCOVERY_SERVICE_PATH}'
 
 API_VERSION = 'v1'
-SERVICE_NAME = 'resources_manager_service'
+SERVICE_NAME = 'resource_manager_service'
 SERVICE_SECRET = os.environ['SERVICE_SECRET']
 PERSISTENCE_DIR = "./persistence"
 INPUT_IMAGE_NAME = "input.jpg"

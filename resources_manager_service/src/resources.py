@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import time
 from datetime import datetime
 from functools import reduce, partial
 from glob import glob
@@ -10,10 +11,10 @@ from uuid import uuid4
 import numpy as np
 import cv2
 from flask import Response, request, make_response, send_from_directory
+from flask_jwt_extended import jwt_required
 from flask_restful import Resource, reqparse
 
-from resources_manager_service.src.config import PERSISTENCE_DIR, \
-    INPUT_IMAGE_NAME, DATE_TIME_FORMAT
+from .config import PERSISTENCE_DIR, INPUT_IMAGE_NAME, DATE_TIME_FORMAT
 
 RawResourceDescription = Tuple[str, List[str]]
 ResourceDescription = Dict[str, Union[str, List[str]]]
@@ -22,7 +23,7 @@ ResourcesDescription = List[ResourceDescription]
 
 def persist_json_result(target_path: str, content: dict) -> None:
     with open(target_path, "w") as f:
-        json.dump(f, content)
+        json.dump(content, f)
 
 
 def safe_load_json(path: str) -> Optional[dict]:
@@ -38,6 +39,7 @@ class InputRegistrationResource(Resource):
     def __init__(self):
         self.__parser = self.__initialize_request_parser()
 
+    @jwt_required
     def post(self) -> Response:
         if 'image' not in request.files:
             return make_response(
@@ -84,10 +86,11 @@ class IntermediateResultRegistrationResource(Resource):
     def __init__(self):
         self.__parser = self.__initialize_request_parser()
 
+    @jwt_required
     def post(self) -> Response:
-        if 'result_content' not in request.files:
+        if 'resource_content' not in request.files:
             return make_response(
-                {'msg': 'Field called "result_content" must be specified'}, 500
+                {'msg': 'Field called "resource_content" must be specified'}, 500
             )
         data = self.__parser.parse_args()
         requester_login = data['requester_login']
@@ -103,7 +106,7 @@ class IntermediateResultRegistrationResource(Resource):
             return make_response(
                 {'msg': 'Wrong resource identifier or requester login'}, 500
             )
-        content = json.load(request.files['people'])
+        content = json.load(request.files['resource_content'])
         persist_json_result(target_path=target_path, content=content)
         return make_response({"msg": "OK"}, 200)
 
@@ -133,6 +136,7 @@ class IntermediateResultFetchingResource(Resource):
     def __init__(self):
         self.__parser = self.__initialize_request_parser()
 
+    @jwt_required
     def get(self) -> Response:
         data = self.__parser.parse_args()
         requester_login = data['requester_login']
@@ -191,12 +195,15 @@ class InputFetchingResource(Resource):
     def __init__(self):
         self.__parser = self.__initialize_request_parser()
 
+    @jwt_required
     def get(self) -> Response:
         data = self.__parser.parse_args()
         requester_login = data['requester_login']
         resource_identifier = data['resource_identifier']
         resources_dir = os.path.join(
-            PERSISTENCE_DIR, resource_identifier, requester_login
+            os.path.abspath(PERSISTENCE_DIR),
+            resource_identifier,
+            requester_login
         )
         if not os.path.isdir(resources_dir):
             return make_response(
@@ -248,18 +255,22 @@ class BatchFetchingResource(Resource):
     def __init__(self):
         self.__parser = self.__initialize_request_parser()
 
+    @jwt_required
     def get(self) -> Response:
         data = self.__parser.parse_args()
         range_start = datetime.strptime(data['range_start'], DATE_TIME_FORMAT)
-        if 'range_end' in data:
-            range_end = datetime.strptime(data['range_end'], DATE_TIME_FORMAT)
+        range_end = data.get('range_end', None)
+        if range_end is not None:
+            range_end = datetime.strptime(range_end, DATE_TIME_FORMAT)
         else:
             range_end = datetime.now()
         resources_description = self.__get_resources_description_from_range(
             range_start=range_start,
             range_end=range_end
         )
-        return make_response(resources_description, 200)
+        return make_response(
+            {'resources_description': resources_description}, 200
+        )
 
     def __get_resources_description_from_range(self,
                                                range_start: datetime,
@@ -332,7 +343,7 @@ class BatchFetchingResource(Resource):
         return range_start < dir_modification_time < range_end
 
     def __get_modification_modification_time(self, path: str) -> datetime:
-        unix_time = os.path.getmtime(path)
+        unix_time = time.ctime(os.path.getmtime(path))
         return datetime.strptime(unix_time, "%a %b %d %H:%M:%S %Y")
 
     def __produce_resources_description(self,
