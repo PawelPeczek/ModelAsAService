@@ -10,7 +10,7 @@ from flask_restful import Api
 from requests import Response
 
 from .resources.asynchronous import \
-    AsynchronousProcessingStart
+    AsynchronousProcessingStart, AsynchronousProcessingResultsFetch
 from .resources.synchronous import ProcessingPipeline
 from .resources.users import Register, Login, TokenRefresh, LogoutAccessToken, \
     LogoutRefreshToken
@@ -107,6 +107,14 @@ def create_api() -> Api:
             'base_resources_manager_path': base_resources_manager_path,
             'inter_services_token': INTER_SERVICES_TOKEN,
             'message_channel': channel
+        }
+    )
+    api.add_resource(
+        AsynchronousProcessingResultsFetch,
+        construct_api_url('/async/fetch_results'),
+        resource_class_kwargs={
+            'base_resources_manager_path': base_resources_manager_path,
+            'inter_services_token': INTER_SERVICES_TOKEN,
         }
     )
     return api

@@ -5,7 +5,7 @@ import json
 import requests
 from flask import Response, request, make_response
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from flask_restful import Resource
+from flask_restful import Resource, reqparse
 from pika.channel import Channel
 
 from ..config import OBJECT_DETECTION_CHANNEL
@@ -58,3 +58,56 @@ class AsynchronousProcessingStart(Resource):
             'request_identifier': resource_identifiers['request_identifier']
         }
         return processing_response, 200
+
+
+class AsynchronousProcessingResultsFetch(Resource):
+
+    def __init__(self,
+                 base_resources_manager_path: str,
+                 inter_services_token: str
+                 ):
+        self.__base_resources_manager_path = base_resources_manager_path
+        self.__inter_services_token = inter_services_token
+        self.__parser = self.__initialize_request_parser()
+
+    @jwt_required
+    def get(self) -> Response:
+        data = self.__parser.parse_args()
+        login = get_jwt_identity()
+        request_identifier = data['request_identifier']
+        return self.__fetch_results(
+            requester_login=login,
+            request_identifier=request_identifier
+        )
+
+    def __fetch_results(self,
+                        requester_login: str,
+                        request_identifier: str
+                        ) -> Response:
+        headers = {
+            'Authorization': f'Bearer {self.__inter_services_token}'
+        }
+        payload = {
+            'requester_login': requester_login,
+            'resource_identifier': request_identifier,
+            'resources_types': [
+                'people_detection', 'faces_detection', 'age_estimation', 'error'
+            ]
+        }
+        url = f'{self.__base_resources_manager_path}' \
+            f'/v1/resource_manager_service/fetch_intermediate_results'
+        response = requests.get(
+            url, data=payload, headers=headers, verify=False
+        )
+        response_content = response.json()
+        return make_response(response_content, response.status_code)
+
+    def __initialize_request_parser(self) -> reqparse.RequestParser:
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            'request_identifier',
+            help='Field "request_identifier" must '
+                 'be specified in this request.',
+            required=True
+        )
+        return parser

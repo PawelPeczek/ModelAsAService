@@ -1,0 +1,4 @@
+import os
+
+
+AGE_ESTIMATION_CHANNEL = os.environ['AGE_ESTIMATION_CHANNEL']
