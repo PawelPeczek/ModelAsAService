@@ -41,7 +41,6 @@ class InputRegistrationResource(Resource):
 
     @jwt_required
     def post(self) -> Response:
-        print(request.get_json())
         if 'image' not in request.files:
             return make_response(
                 {'msg': 'Field called "image" must be specified'}, 500
