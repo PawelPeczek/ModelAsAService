@@ -7,15 +7,11 @@ ARG DISCOVERY_SERVICE_HOST="https://127.0.0.1"
 ARG DISCOVERY_SERVICE_PORT=50003
 ARG DISCOVERY_SERVICE_PATH="v1/discovery_service/locate_services"
 ARG SERVICE_SECRET
-ARG AGE_ESTIMATION_CHANNEL="age_estimation"
+
 RUN groupadd docker_users
 RUN useradd docker_user -g docker_users
 RUN mkdir project
 RUN chown -R docker_user:docker_users project
-RUN git clone https://github.com/PawelPeczek/AgeEstimator.git
-WORKDIR AgeEstimator
-RUN python -m pip install .
-WORKDIR /
 COPY ./requirements.txt project/requirements.txt
 RUN python -m pip install -r project/requirements.txt
 
@@ -26,15 +22,8 @@ ENV DISCOVERY_SERVICE_HOST=$DISCOVERY_SERVICE_HOST
 ENV DISCOVERY_SERVICE_PORT=$DISCOVERY_SERVICE_PORT
 ENV DISCOVERY_SERVICE_PATH=$DISCOVERY_SERVICE_PATH
 ENV SERVICE_SECRET=$SERVICE_SECRET
-ENV AGE_ESTIMATION_CHANNE=$AGE_ESTIMATION_CHANNEL
 
 COPY . project
-RUN chmod ugo+x project/run_app.sh
-
-RUN  wget --no-check-certificate \
-   'https://docs.google.com/uc?export=download&id=1u8ZIHHWkXqpfp_HT-Jzr8R6MrozdDn7A' \
-   -O project/weights/weights.pth
-
 WORKDIR project
 
-ENTRYPOINT ./run_app.sh
+ENTRYPOINT python -m src.app

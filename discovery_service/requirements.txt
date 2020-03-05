@@ -6,3 +6,4 @@ pyOpenSSL==19.1.0
 PyJWT==1.7.1
 SQLAlchemy-Utils==0.36.1
 requests==2.22.0
+psycopg2==2.8.4

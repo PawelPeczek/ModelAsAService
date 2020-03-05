@@ -1,7 +1,5 @@
 import logging
 
-from werkzeug.security import generate_password_hash
-
 from .app import app
 from .model import Service, persist_model_instance, remove_from_db
 
@@ -42,7 +40,7 @@ def _handle_user_input(user_input: str) -> None:
     elif user_input == 'l':
         _list_services()
     elif user_input != 'q':
-        logging.warning(f'Wrong command.')
+        logging.warning('Wrong command.')
 
 
 def _add_service() -> None:
