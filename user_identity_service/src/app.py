@@ -18,7 +18,6 @@ from .model import db
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_CONN_STRING
-
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['ADMIN_RESOURCES_JWT_SECRET_KEY'] = ADMIN_RESOURCES_JWT_SECRET

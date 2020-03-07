@@ -41,4 +41,6 @@ ENV USER_IDENTITY_SERVICE_NAME=$USER_IDENTITY_SERVICE_NAME
 COPY . project
 WORKDIR project
 
+RUN chmod ugo+x *.sh
+
 ENTRYPOINT python -m src.app

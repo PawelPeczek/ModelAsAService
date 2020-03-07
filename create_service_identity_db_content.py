@@ -4,7 +4,7 @@ from config_generation_utils import dump_json_file, fetch_from_env
 
 TARGET_FILE_PATH = os.path.join("./server_identity_service/db_content.json")
 
-BATCH_INPUT = [
+TO_FETCH_FROM_ENV = [
     ('AGE_ESTIMATION_SERVICE_NAME', 'AGE_ESTIMATION_SERVICE_SECRET'),
     ('DISCOVERY_SERVICE_NAME', 'DISCOVERY_SERVICE_SECRET'),
     ('FACE_DETECTION_SERVICE_NAME', 'FACE_DETECTION_SERVICE_SECRET'),
@@ -16,7 +16,7 @@ BATCH_INPUT = [
 
 
 def create_db_content() -> None:
-    env_content = fetch_from_env(to_fetch=BATCH_INPUT)
+    env_content = fetch_from_env(to_fetch=TO_FETCH_FROM_ENV)
     config_file_content = [
         {'service_name': service_name, 'service_password': service_password}
         for (service_name, service_password) in env_content
