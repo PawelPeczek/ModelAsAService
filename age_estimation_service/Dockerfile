@@ -41,4 +41,6 @@ RUN  wget --no-check-certificate \
 
 WORKDIR project
 
+RUN chmod ugo+x *.sh
+
 ENTRYPOINT ./run_app.sh

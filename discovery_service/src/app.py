@@ -15,10 +15,10 @@ from .config import API_VERSION, SERVICE_NAME, DB_CONN_STRING, \
 from .model import db, ServiceLocation
 
 app = Flask(__name__)
-db.init_app(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_CONN_STRING
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
 
 jwt = JWTManager(app)
 
@@ -40,7 +40,7 @@ def construct_api_url(resource_postfix: str) -> str:
 
 def _fetch_config_from_identity_service() -> Tuple[str, str]:
     payload = {'service_name': SERVICE_NAME, 'password': SERVICE_SECRET}
-    response = requests.post(
+    response = requests.get(
         SERVER_IDENTITY_URL, json=payload, verify=False
     )
     if response.status_code == 200:

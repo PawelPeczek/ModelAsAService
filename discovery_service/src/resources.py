@@ -13,7 +13,7 @@ class ServiceLocationResource(Resource):
         self.__parser = self.__initialize_request_parser()
 
     @jwt_required
-    def post(self) -> Response:
+    def get(self) -> Response:
         data = self.__parser.parse_args()
         if self.__caller_identity_not_recognised():
             return make_response({'msg': 'Identity not recognised.'}, 401)

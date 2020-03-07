@@ -11,7 +11,7 @@ class ServiceIdentityResource(Resource):
         self.__parser = self.__initialize_request_parser()
         self.__token_secret = token_secret
 
-    def post(self) -> Response:
+    def get(self) -> Response:
         data = self.__parser.parse_args()
         service = Service.find_by_credentials(
             service_name=data['service_name'],

@@ -1,4 +1,7 @@
+import argparse
+import json
 import logging
+from typing import List, Dict
 
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -16,6 +19,16 @@ def manage_services_interactively() -> None:
     while user_input.lower() != 'q':
         user_input = _get_user_info(description='Type command')
         _handle_user_input(user_input=user_input)
+
+
+def manage_services_from_config(config: List[Dict[str, str]]) -> None:
+    app.app_context().push()
+    for service_description in config:
+        _add_service_location(
+            service_name=service_description['service_name'],
+            service_host=service_description['service_host'],
+            service_port=int(service_description['service_port'])
+        )
 
 
 def _print_help():
@@ -37,7 +50,7 @@ def _get_user_info(description: str) -> str:
 def _handle_user_input(user_input: str) -> None:
     user_input = user_input.lower()
     if user_input == 'a':
-        _add_service_location()
+        _add_service_location_interactively()
     elif user_input == 'd':
         _delete_service_location()
     elif user_input == 'l':
@@ -46,11 +59,21 @@ def _handle_user_input(user_input: str) -> None:
         logging.warning(f'Wrong command.')
 
 
-def _add_service_location() -> None:
+def _add_service_location_interactively() -> None:
     service_name = _get_user_info(description='Type service name')
     service_host = _get_user_info(description='Type service host')
-    service_port = _get_user_info(description='Type service port')
+    service_port = int(_get_user_info(description='Type service port'))
+    _add_service_location(
+        service_name=service_name,
+        service_host=service_host,
+        service_port=service_port
+    )
 
+
+def _add_service_location(service_name: str,
+                          service_host: str,
+                          service_port: int
+                          ) -> None:
     service_location = ServiceLocation.find_by_name(service_name=service_name)
     try:
         if service_location is None:
@@ -87,4 +110,16 @@ def _list_services_locations() -> None:
 
 
 if __name__ == '__main__':
-    manage_services_interactively()
+    parser = argparse.ArgumentParser(description='Database management tool')
+    parser.add_argument(
+        '--config_path',
+        type=str,
+        help='Path to JSON config with database content.'
+    )
+    args = parser.parse_args()
+    if args.config_path is None:
+        manage_services_interactively()
+    else:
+        with open(args.config_path, "r") as f:
+            config = json.load(fp=f)
+            manage_services_from_config(config=config)

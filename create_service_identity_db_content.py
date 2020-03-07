@@ -1,7 +1,6 @@
 import os
 
-from config_generation_utils import dump_json_file
-
+from config_generation_utils import dump_json_file, fetch_from_env
 
 TARGET_FILE_PATH = os.path.join("./server_identity_service/db_content.json")
 
@@ -17,10 +16,7 @@ BATCH_INPUT = [
 
 
 def create_db_content() -> None:
-    env_content = (
-        tuple(os.environ[env_name] for env_name in pair_to_fetch)
-        for pair_to_fetch in BATCH_INPUT
-    )
+    env_content = fetch_from_env(to_fetch=BATCH_INPUT)
     config_file_content = [
         {'service_name': service_name, 'service_password': service_password}
         for (service_name, service_password) in env_content

@@ -49,7 +49,7 @@ def create_app() -> None:
 
 def _fetch_config_from_identity_service() -> Tuple[str, str]:
     payload = {'service_name': SERVICE_NAME, 'password': SERVICE_SECRET}
-    response = requests.post(
+    response = requests.get(
         SERVER_IDENTITY_URL, json=payload, verify=False
     )
     if response.status_code == 200:
@@ -80,7 +80,7 @@ def _fetch_services_info(services: List[str]) -> Dict[str, dict]:
 def _call_discovery_resource(services: List[str]) -> Response:
     headers = {'Authorization': f'Bearer {INTER_SERVICES_TOKEN}'}
     payload = {'service_names': services}
-    return requests.post(
+    return requests.get(
         DISCOVERY_URL, headers=headers, json=payload, verify=False
     )
 
