@@ -1,4 +1,7 @@
+import json
 import logging
+from typing import List, Dict
+import argparse
 
 from .app import app
 from .model import Service, persist_model_instance, remove_from_db
@@ -13,6 +16,15 @@ def manage_services_interactively() -> None:
     while user_input.lower() != 'q':
         user_input = _get_user_info(description='Type command')
         _handle_user_input(user_input=user_input)
+
+
+def manage_services_from_config(config: List[Dict[str, str]]) -> None:
+    app.app_context().push()
+    for service_description in config:
+        _add_service(
+            service_name=service_description['service_name'],
+            service_password=service_description['service_password']
+        )
 
 
 def _print_help():
@@ -34,7 +46,7 @@ def _get_user_info(description: str) -> str:
 def _handle_user_input(user_input: str) -> None:
     user_input = user_input.lower()
     if user_input == 'a':
-        _add_service()
+        _add_service_interactively()
     elif user_input == 'd':
         _delete_service()
     elif user_input == 'l':
@@ -43,9 +55,13 @@ def _handle_user_input(user_input: str) -> None:
         logging.warning('Wrong command.')
 
 
-def _add_service() -> None:
+def _add_service_interactively() -> None:
     service_name = _get_user_info(description='Type service name')
     service_password = _get_user_info(description='Type service password')
+    _add_service(service_name=service_name, service_password=service_password)
+
+
+def _add_service(service_name: str, service_password: str) -> None:
     new_service = Service(service_name=service_name)
     new_service.set_password(password=service_password)
     persist_model_instance(instance=new_service)
@@ -67,4 +83,16 @@ def _list_services() -> None:
 
 
 if __name__ == '__main__':
-    manage_services_interactively()
+    parser = argparse.ArgumentParser(description='Database management tool')
+    parser.add_argument(
+        '--config_path',
+        type=str,
+        help='Path to JSON config with database content.'
+    )
+    args = parser.parse_args()
+    if args.config_path is None:
+        manage_services_interactively()
+    else:
+        with open(args.config_path, "r") as f:
+            config = json.load(fp=f)
+            manage_services_from_config(config=config)
