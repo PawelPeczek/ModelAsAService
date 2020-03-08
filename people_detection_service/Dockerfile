@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM python:3.7-buster
 
 RUN apt-get update && \
     apt-get install -y python3 python3-pip libssl-dev
@@ -16,8 +16,11 @@ ARG PEOPLE_DETECTION_SERVICE_NAME
 
 RUN groupadd docker_users
 RUN useradd docker_user -g docker_users
-RUN mkdir project
+RUN mkdir project project/weights
 RUN chown -R docker_user:docker_users project
+RUN  wget --no-check-certificate \
+   'https://github.com/fizyr/keras-retinanet/releases/download/0.5.1/resnet50_coco_best_v2.1.0.h5' \
+   -O project/weights/weights.h5
 COPY ./requirements.txt project/requirements.txt
 RUN python3 -m pip install --no-cache-dir Cython
 RUN python3 -m pip install -r project/requirements.txt
@@ -32,9 +35,11 @@ ENV PEOPLE_DETECTION_SERVICE_SECRET=$PEOPLE_DETECTION_SERVICE_SECRET
 ENV OBJECT_DETECTION_CHANNEL=$OBJECT_DETECTION_CHANNEL
 ENV FACE_DETECTION_CHANNEL=$FACE_DETECTION_CHANNEL
 ENV PEOPLE_DETECTION_SERVICE_NAME=$PEOPLE_DETECTION_SERVICE_NAME
+ENV RUN_SYNC_APP=true
 
 COPY . project
-RUN chmod ugo+x project/run_app.sh
+
 WORKDIR project
+RUN chmod ugo+x *.sh
 
 ENTRYPOINT ./run_app.sh

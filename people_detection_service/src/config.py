@@ -15,3 +15,9 @@ DISCOVERY_SERVICE_PATH = os.environ['DISCOVERY_SERVICE_PATH']
 DISCOVERY_URL = \
     f'{DISCOVERY_SERVICE_HOST}:{DISCOVERY_SERVICE_PORT}/' \
     f'{DISCOVERY_SERVICE_PATH}'
+WEIGHTS_PATH = os.path.join(
+    os.path.dirname(__file__), '..', 'weights', 'weights.h5'
+)
+CONFIDENCE_THRESHOLD = 0.4
+CLASSES_TO_FETCH = {0}
+MAX_IMAGE_DIM = 800

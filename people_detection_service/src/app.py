@@ -6,14 +6,19 @@ import requests
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
+from keras_retinanet.models import load_model
+import tensorflow as tf
+from tensorflow.python.keras.backend import set_session
 
 from .resources import PeopleDetection
 from .config import SERVICE_NAME, API_VERSION, SERVICE_SECRET, \
-    SERVER_IDENTITY_URL, DISCOVERY_URL
+    SERVER_IDENTITY_URL, DISCOVERY_URL, WEIGHTS_PATH, CONFIDENCE_THRESHOLD, \
+    CLASSES_TO_FETCH, MAX_IMAGE_DIM
 
 INTER_SERVICES_TOKEN = None
 app = Flask(__name__)
-
+GRAPH = None
+TF_SESSION = None
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 jwt = JWTManager(app)
@@ -24,7 +29,24 @@ def create_api() -> Api:
     secret, INTER_SERVICES_TOKEN = _fetch_config_from_identity_service()
     app.config['JWT_SECRET_KEY'] = secret
     api = Api(app)
-    api.add_resource(PeopleDetection, construct_api_url('/detect_people'))
+    global TF_SESSION
+    global GRAPH
+    GRAPH = tf.get_default_graph()
+    TF_SESSION = tf.Session(graph=GRAPH)
+    set_session(TF_SESSION)
+    model = load_model(WEIGHTS_PATH)
+    api.add_resource(
+        PeopleDetection,
+        construct_api_url('/detect_people'),
+        resource_class_kwargs={
+            'model': model,
+            'session': TF_SESSION,
+            'graph': GRAPH,
+            'confidence_threshold': CONFIDENCE_THRESHOLD,
+            'classes_to_fetch': CLASSES_TO_FETCH,
+            'max_image_dim': MAX_IMAGE_DIM
+        }
+    )
     return api
 
 

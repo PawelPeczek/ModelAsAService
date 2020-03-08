@@ -12,8 +12,11 @@ ARG AGE_ESTIMATION_SERVICE_NAME
 
 RUN groupadd docker_users
 RUN useradd docker_user -g docker_users
-RUN mkdir project
+RUN mkdir project project/weights
 RUN chown -R docker_user:docker_users project
+RUN  wget --no-check-certificate \
+   'https://docs.google.com/uc?export=download&id=1u8ZIHHWkXqpfp_HT-Jzr8R6MrozdDn7A' \
+   -O project/weights/weights.pth
 RUN git clone https://github.com/PawelPeczek/AgeEstimator.git
 WORKDIR AgeEstimator
 RUN python -m pip install .
@@ -34,10 +37,6 @@ ENV AGE_ESTIMATION_SERVICE_NAME=$AGE_ESTIMATION_SERVICE_NAME
 
 COPY . project
 RUN chmod ugo+x project/run_app.sh
-
-RUN  wget --no-check-certificate \
-   'https://docs.google.com/uc?export=download&id=1u8ZIHHWkXqpfp_HT-Jzr8R6MrozdDn7A' \
-   -O project/weights/weights.pth
 
 WORKDIR project
 
