@@ -81,6 +81,7 @@ def _fetch_port() -> int:
     response = _call_discovery_resource(services=[SERVICE_NAME])
     if response.status_code == 200:
         response_content = response.json()
+        print(response_content)
         return _fetch_port_from_response(content=response_content)
     else:
         content = response.json()
@@ -103,4 +104,5 @@ def _fetch_port_from_response(content: dict) -> int:
 if __name__ == '__main__':
     api = create_api()
     service_port = _fetch_port()
+    print(f"Fetched port: {service_port}")
     app.run(host='0.0.0.0', port=service_port, ssl_context='adhoc')

@@ -66,9 +66,7 @@ class InputRegistrationResource(Resource):
         )
 
     def __decode_input_image(self) -> np.ndarray:
-        in_memory_file = io.BytesIO()
-        request.files['image'].save(in_memory_file)
-        data = np.fromstring(in_memory_file.getvalue(), dtype=np.uint8)
+        data = np.fromstring(request.files['image'].read(), dtype=np.uint8)
         return cv2.imdecode(data, cv2.IMREAD_COLOR)
 
     def __initialize_request_parser(self) -> reqparse.RequestParser:
