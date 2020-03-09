@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM python:3.7-buster
 
 RUN apt-get update && \
     apt-get install -y python3 python3-pip libssl-dev git-core
@@ -16,10 +16,13 @@ ARG FACE_DETECTION_SERVICE_NAME
 
 RUN groupadd docker_users
 RUN useradd docker_user -g docker_users
-RUN mkdir project
+RUN mkdir project project/weights
 RUN chown -R docker_user:docker_users project
-RUN git clone https://github.com/PawelPeczek/AgeEstimator.git
-WORKDIR AgeEstimator
+RUN wget --no-check-certificate \
+   'https://docs.google.com/uc?export=download&id=1Cfq2f9jhFCN-thB_pM40-Duzcullufs1' \
+   -O project/weights/weights.pth
+RUN git clone https://github.com/PawelPeczek/RetinaFaceNet.git
+WORKDIR RetinaFaceNet
 RUN python3 -m pip install .
 WORKDIR /
 COPY ./requirements.txt project/requirements.txt

@@ -81,7 +81,8 @@ class PeopleDetection(Resource):
             inference_result = self.__wrap_bounding_box(
                 bbox_specs=bbox
             )
-            inference_results.append(inference_result)
+            if inference_result.size > 0:
+                inference_results.append(inference_result)
         return inference_results
 
     def __result_does_not_match(self, score: float, label: int) -> bool:

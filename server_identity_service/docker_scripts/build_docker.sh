@@ -1,4 +1,5 @@
 #!bash
+export $(egrep -v '^#' ../.env | xargs)
 sudo -E docker build \
     --build-arg DB_USER=$DB_USER \
     --build-arg DB_SECRET=$DB_SECRET \

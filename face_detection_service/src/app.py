@@ -6,10 +6,12 @@ import requests
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
+from retina_face_net import RetinaFaceNet
 
 from .resources import FacesDetection
 from .config import SERVICE_NAME, API_VERSION, SERVICE_SECRET, \
-    SERVER_IDENTITY_URL, DISCOVERY_URL
+    SERVER_IDENTITY_URL, DISCOVERY_URL, CONFIDENCE_THRESHOLD, \
+    TOP_K_PREDICTIONS_TO_TAKE, NMS_THRESHOLD, WEIGHTS_PATH
 
 INTER_SERVICES_TOKEN = None
 app = Flask(__name__)
@@ -24,7 +26,19 @@ def create_api() -> Api:
     secret, INTER_SERVICES_TOKEN = _fetch_config_from_identity_service()
     app.config['JWT_SECRET_KEY'] = secret
     api = Api(app)
-    api.add_resource(FacesDetection, construct_api_url('/detect_faces'))
+    model = RetinaFaceNet.initialize(
+        weights_path=WEIGHTS_PATH,
+        confidence_threshold=CONFIDENCE_THRESHOLD,
+        top_k=TOP_K_PREDICTIONS_TO_TAKE,
+        nms_threshold=NMS_THRESHOLD
+    )
+    api.add_resource(
+        FacesDetection,
+        construct_api_url('/detect_faces'),
+        resource_class_kwargs={
+            'model': model
+        }
+    )
     return api
 
 

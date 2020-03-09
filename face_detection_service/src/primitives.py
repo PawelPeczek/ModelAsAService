@@ -1,7 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Dict
-
+from typing import List, Dict, Tuple
 
 CompactPoint = Dict[str, int]
 CompactBoundingBox = Dict[str, CompactPoint]
@@ -11,6 +10,9 @@ CompactBoundingBox = Dict[str, CompactPoint]
 class Point:
     x: int
     y: int
+
+    def to_tuple(self) -> Tuple[int, int]:
+        return self.x, self.y
 
     def to_dict(self) -> Dict[str, int]:
         return {
@@ -41,8 +43,8 @@ class BoundingBox:
 
     @property
     def size(self) -> int:
-        height = self.right_bottom.y - self.left_top.y
-        width = self.right_bottom.x - self.left_top.y
+        height = abs(self.right_bottom.y - self.left_top.y)
+        width = abs(self.right_bottom.x - self.left_top.y)
         return height * width
 
     @classmethod

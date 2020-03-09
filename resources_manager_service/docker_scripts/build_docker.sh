@@ -1,4 +1,5 @@
 #!bash
+export $(egrep -v '^#' ../.env | xargs)
 sudo -E docker build \
     --build-arg SERVER_IDENTITY_SERVICE_PATH=$SERVER_IDENTITY_SERVICE_PATH \
     --build-arg SERVER_IDENTITY_SERVICE_HOST=$SERVER_IDENTITY_SERVICE_HOST \
