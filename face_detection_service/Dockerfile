@@ -18,9 +18,8 @@ RUN groupadd docker_users
 RUN useradd docker_user -g docker_users
 RUN mkdir project project/weights
 RUN chown -R docker_user:docker_users project
-RUN wget --no-check-certificate \
-   'https://docs.google.com/uc?export=download&id=1Cfq2f9jhFCN-thB_pM40-Duzcullufs1' \
-   -O project/weights/weights.pth
+RUN wget --no-check-certificate 'https://github.com/PawelPeczek/RetinaFaceNet/releases/download/v1.0/FaceNet_resnet_50.pth' \
+    -O project/weights/weights.pth
 RUN git clone https://github.com/PawelPeczek/RetinaFaceNet.git
 WORKDIR RetinaFaceNet
 RUN python3 -m pip install .
