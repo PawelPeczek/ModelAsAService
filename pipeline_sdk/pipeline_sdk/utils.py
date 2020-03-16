@@ -1,3 +1,6 @@
+import numpy as np
+import cv2 as cv
+
 from .proxies.primitives import ServiceSpecs
 
 
@@ -18,3 +21,13 @@ def compose_relative_resource_url(service_name: str,
     if path_postfix.startswith('/'):
         path_postfix = path_postfix.lstrip('/')
     return f"/{service_version}/{service_name}/{path_postfix}"
+
+
+def image_to_jpeg_bytes(image: np.ndarray,
+                        compression_rate: int = 90
+                        ) -> bytes:
+    if compression_rate <= 0 or compression_rate > 100:
+        raise ValueError("Compression rate must be in range (0; 100]")
+    encode_param = [int(cv.IMWRITE_JPEG_QUALITY), compression_rate]
+    _, raw_image = cv.imencode('.jpg', image, encode_param)
+    return raw_image

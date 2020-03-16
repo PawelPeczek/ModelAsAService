@@ -12,4 +12,3 @@ class RequestProcessingError(PipelineSDKError):
 
 class IdentityVerificationFailed(RequestProcessingError):
     pass
-

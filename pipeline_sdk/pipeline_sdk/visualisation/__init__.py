@@ -1,0 +1,1 @@
+from .people_detection import draw_people_detections
