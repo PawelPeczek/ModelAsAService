@@ -1,8 +1,3 @@
-import logging
-from time import sleep
-from typing import Tuple
-
-import requests
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
