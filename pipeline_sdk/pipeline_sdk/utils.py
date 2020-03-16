@@ -14,6 +14,6 @@ def compose_relative_resource_url(service_specs: ServiceSpecs,
                                   path_postfix: str
                                   ) -> str:
     if path_postfix.startswith('/'):
-        path_postfix = path_postfix.lstrip(chars='/')
+        path_postfix = path_postfix.lstrip('/')
     return f"/{service_specs.version}/{service_specs.service_name}/" \
         f"{path_postfix}"
