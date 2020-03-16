@@ -3,8 +3,6 @@ FROM python:3.7-alpine
 RUN apk update && \
     apk add openssh postgresql-dev gcc linux-headers libc-dev libffi-dev git
 
-ENV DUPA=3
-
 ARG SERVER_IDENTITY_TOKEN_SECRET
 ARG DB_USER
 ARG DB_SECRET

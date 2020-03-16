@@ -3,7 +3,6 @@ import requests
 from .errors import IdentityVerificationFailed, RequestProcessingError
 from ..config import VERIFY_SERVICE_IDENTITY_PATH
 from .primitives import ServiceSpecs, ServiceJWT
-from ..utils import compose_url
 
 
 class ServerIdentityClient:
@@ -15,6 +14,7 @@ class ServerIdentityClient:
                            service_name: str,
                            service_secret: str
                            ) -> ServiceJWT:
+        from ..utils import compose_url
         url = compose_url(
             service_specs=self.__server_identity_specs,
             path_postfix=VERIFY_SERVICE_IDENTITY_PATH
