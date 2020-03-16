@@ -1,9 +1,9 @@
 from flask import Flask
 from flask_restful import Api
 
+from pipeline_sdk.utils import compose_relative_resource_url
 from .resources import ServiceIdentityResource
-from .config import SERVICE_PORT, API_VERSION, SERVICE_NAME, TOKEN_SECRET, \
-    DB_CONN_STRING
+from .config import TOKEN_SECRET, DB_CONN_STRING, SERVICE_SPECS
 from .model import db
 
 app = Flask(__name__)
@@ -17,18 +17,14 @@ def create_api() -> Api:
     api = Api(app)
     api.add_resource(
         ServiceIdentityResource,
-        construct_api_url('/verify_service_identity'),
+        compose_relative_resource_url(SERVICE_SPECS, '/verify_service_identity'),
         resource_class_kwargs={'token_secret': TOKEN_SECRET}
     )
     return api
-
-
-def construct_api_url(resource_postfix: str) -> str:
-    return f'/{API_VERSION}/{SERVICE_NAME}{resource_postfix}'
 
 
 api = create_api()
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=SERVICE_PORT, ssl_context='adhoc')
+    app.run(host='0.0.0.0', port=SERVICE_SPECS.port, ssl_context='adhoc')

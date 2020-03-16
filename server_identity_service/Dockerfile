@@ -14,6 +14,10 @@ RUN addgroup docker_users
 RUN adduser -S docker_user -G docker_users
 RUN mkdir project
 RUN chown -R docker_user:docker_users project
+RUN git clone https://github.com/PawelPeczek/ModelAsAService.git
+WORKDIR ModelAsAService/pipeline_sdk
+RUN pip install .
+WORKDIR /
 COPY ./requirements.txt project/requirements.txt
 RUN python -m pip install -r project/requirements.txt
 
@@ -26,7 +30,5 @@ ENV SERVER_IDENTITY_SERVICE_NAME=$SERVER_IDENTITY_SERVICE_NAME
 
 COPY . project
 WORKDIR project
-
-RUN chmod ugo+x *.sh
 
 ENTRYPOINT python -m src.app
