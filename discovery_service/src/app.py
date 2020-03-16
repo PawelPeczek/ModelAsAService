@@ -6,12 +6,14 @@ import requests
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
+from pipeline_sdk.utils import compose_relative_resource_url
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from pipeline_sdk.proxies import ServerIdentityClient
 
 from .resources import ServiceLocationResource
-from .config import API_VERSION, SERVICE_NAME, DB_CONN_STRING, \
-    SERVER_IDENTITY_URL, SERVICE_SECRET
+from .config import SERVICE_NAME, DB_CONN_STRING, SERVICE_SECRET, \
+    SERVER_IDENTITY_SPECS, API_VERSION
 from .model import db, ServiceLocation
 
 app = Flask(__name__)
@@ -24,34 +26,22 @@ jwt = JWTManager(app)
 
 
 def create_api() -> Api:
-    jwt_secret, _ = _fetch_config_from_identity_service()
-    app.config['JWT_SECRET_KEY'] = jwt_secret
+    server_identity_client = ServerIdentityClient(
+        server_identity_specs=SERVER_IDENTITY_SPECS
+    )
+    service_jwt = server_identity_client.obtain_service_jwt(
+        service_name=SERVICE_NAME,
+        service_secret=SERVICE_SECRET
+    )
+    app.config['JWT_SECRET_KEY'] = service_jwt.token_secret
     api = Api(app)
     api.add_resource(
         ServiceLocationResource,
-        construct_api_url('/locate_services')
+        compose_relative_resource_url(
+            SERVICE_NAME, API_VERSION, '/locate_services'
+        )
     )
     return api
-
-
-def construct_api_url(resource_postfix: str) -> str:
-    return f'/{API_VERSION}/{SERVICE_NAME}{resource_postfix}'
-
-
-def _fetch_config_from_identity_service() -> Tuple[str, str]:
-    payload = {'service_name': SERVICE_NAME, 'password': SERVICE_SECRET}
-    response = requests.get(
-        SERVER_IDENTITY_URL, json=payload, verify=False
-    )
-    if response.status_code == 200:
-        logging.info('Obtained access token and token secret.')
-        content = response.json()
-        return content['token_secret'], content['service_access_token']
-    else:
-        content = response.json()
-        logging.error(content)
-        sleep(5)
-        return _fetch_config_from_identity_service()
 
 
 def fetch_service_port() -> int:
