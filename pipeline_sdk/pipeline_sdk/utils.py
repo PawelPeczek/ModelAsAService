@@ -1,4 +1,4 @@
-from .proxies import ServiceSpecs
+from .proxies.primitives import ServiceSpecs
 
 
 def compose_url(service_specs: ServiceSpecs,
