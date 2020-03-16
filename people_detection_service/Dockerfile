@@ -21,6 +21,10 @@ RUN chown -R docker_user:docker_users project
 RUN  wget --no-check-certificate \
    'https://github.com/fizyr/keras-retinanet/releases/download/0.5.1/resnet50_coco_best_v2.1.0.h5' \
    -O project/weights/weights.h5
+RUN git clone https://github.com/PawelPeczek/ModelAsAService.git
+WORKDIR ModelAsAService/pipeline_sdk
+RUN pip install .
+WORKDIR /
 COPY ./requirements.txt project/requirements.txt
 RUN python3 -m pip install --no-cache-dir Cython
 RUN python3 -m pip install -r project/requirements.txt
