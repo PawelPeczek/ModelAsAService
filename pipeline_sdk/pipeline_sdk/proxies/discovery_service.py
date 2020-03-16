@@ -1,10 +1,16 @@
+import logging
+import time
 from typing import Dict, List
 
 import requests
 from flask import Response
+from requests import RequestException
+
 from .primitives import ServiceSpecs
 from .errors import IdentityVerificationFailed, RequestProcessingError
-from ..config import LOCATE_SERVICES_PATH
+from ..config import LOCATE_SERVICES_PATH, LOGGING_LEVEL
+
+logging.getLogger().setLevel(LOGGING_LEVEL)
 
 
 class DiscoveryServiceClient:
@@ -15,6 +21,16 @@ class DiscoveryServiceClient:
                  ):
         self.__discovery_service_specs = discovery_service_specs
         self.__service_token = service_token
+
+    def obtain_discovery_info_safely(self,
+                                     service_names: List[str]
+                                     ) -> Dict[str, ServiceSpecs]:
+        while True:
+            try:
+                return self.obtain_discovery_info(service_names=service_names)
+            except (RequestException, ConnectionError) as e:
+                logging.error(f"Could not obtain discovery info: {e}")
+                time.sleep(5)
 
     def obtain_discovery_info(self,
                               service_names: List[str]

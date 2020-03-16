@@ -24,7 +24,7 @@ def create_api() -> Api:
     server_identity_client = ServerIdentityClient(
         server_identity_specs=SERVER_IDENTITY_SPECS
     )
-    service_jwt = server_identity_client.obtain_service_jwt(
+    service_jwt = server_identity_client.obtain_service_jwt_safely(
         service_name=SERVICE_NAME,
         service_secret=SERVICE_SECRET
     )
