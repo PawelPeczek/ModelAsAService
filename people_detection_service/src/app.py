@@ -37,7 +37,7 @@ def create_api() -> Api:
     api.add_resource(
         PeopleDetection,
         compose_relative_resource_url(
-            SERVICE_NAME, API_VERSION, '/detect_people'
+            SERVICE_NAME, API_VERSION, 'detect_people'
         ),
         resource_class_kwargs={
             'model': model,

@@ -1,6 +1,7 @@
 import numpy as np
 import cv2 as cv
 
+from .primitives import BoundingBox, Point
 from .proxies.primitives import ServiceSpecs
 
 
@@ -31,3 +32,12 @@ def image_to_jpeg_bytes(image: np.ndarray,
     encode_param = [int(cv.IMWRITE_JPEG_QUALITY), compression_rate]
     _, raw_image = cv.imencode('.jpg', image, encode_param)
     return raw_image
+
+
+def create_bounding_box_covering_image(image: np.ndarray) -> BoundingBox:
+    height, width = image.shape[:2]
+    left_top, right_bottom = Point(x=0, y=0), Point(x=width, y=height)
+    return BoundingBox(
+        left_top=left_top,
+        right_bottom=right_bottom
+    )
