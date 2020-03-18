@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 
 PointTuple = Tuple[int, int]
 CompactPoint = Dict[str, int]
@@ -8,7 +8,7 @@ BoundingBoxTuple = Tuple[PointTuple, PointTuple]
 CompactBoundingBox = Dict[str, CompactPoint]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Point:
     x: int
     y: int
@@ -32,10 +32,16 @@ class Point:
         )
 
 
-@dataclass
+@dataclass(frozen=True)
 class BoundingBox:
     left_top: Point
     right_bottom: Point
+
+    @property
+    def center(self) -> Point:
+        center_x = int(round((self.left_top.x + self.right_bottom.x) / 2))
+        center_y = int(round((self.left_top.y + self.right_bottom.y) / 2))
+        return Point(x=center_x, y=center_y)
 
     def to_tuple(self) -> BoundingBoxTuple:
         return self.left_top.to_tuple(), self.right_bottom.to_tuple()
@@ -59,4 +65,27 @@ class BoundingBox:
         return cls(
             left_top=left_top,
             right_bottom=right_bottom
+        )
+
+
+@dataclass(frozen=True)
+class AgeEstimationResult:
+    bounding_box: BoundingBox
+    associated_age: Optional[int]
+
+    def to_dict(self) -> dict:
+        return {
+            'bounding_box': self.bounding_box.to_dict(),
+            'associated_age': self.associated_age
+        }
+
+    @classmethod
+    def from_dict(cls, age_estimation_dict: dict) -> AgeEstimation:
+        bounding_box = BoundingBox.from_dict(age_estimation_dict)
+        associated_age = age_estimation_dict['associated_age']
+        if associated_age is not None:
+            associated_age = int(associated_age)
+        return cls(
+            bounding_box=bounding_box,
+            associated_age=associated_age
         )

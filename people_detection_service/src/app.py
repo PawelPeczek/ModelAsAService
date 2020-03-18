@@ -36,9 +36,7 @@ def create_api() -> Api:
     model = load_model(WEIGHTS_PATH)
     api.add_resource(
         PeopleDetection,
-        compose_relative_resource_url(
-            SERVICE_NAME, API_VERSION, 'detect_people'
-        ),
+        compose_relative_resource_url(SERVICE_NAME, API_VERSION, 'detect_people'),
         resource_class_kwargs={
             'model': model,
             'session': TF_SESSION,

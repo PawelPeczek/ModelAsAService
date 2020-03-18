@@ -1,15 +1,13 @@
-import logging
-from time import sleep
-from typing import Tuple
-
-import requests
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
+from pipeline_sdk.proxies import ServiceJWT, ServerIdentityClient, \
+    DiscoveryServiceClient
+from pipeline_sdk.utils import compose_relative_resource_url
 
 from .resources import AgeEstimation
 from .config import SERVICE_NAME, API_VERSION, SERVICE_SECRET, \
-    SERVER_IDENTITY_URL, DISCOVERY_URL
+    IDENTITY_SERVICE_SPECS, DISCOVERY_SERVICE_SPECS
 
 INTER_SERVICES_TOKEN = None
 app = Flask(__name__)
@@ -24,60 +22,42 @@ def create_api() -> Api:
     secret, INTER_SERVICES_TOKEN = _fetch_config_from_identity_service()
     app.config['JWT_SECRET_KEY'] = secret
     api = Api(app)
-    api.add_resource(AgeEstimation, construct_api_url('/estimate_age'))
+    api.add_resource(
+        AgeEstimation,
+        compose_relative_resource_url(SERVICE_NAME, API_VERSION, 'estimate_age'),
+    )
     return api
 
 
-def construct_api_url(resource_postfix: str) -> str:
-    return f'/{API_VERSION}/{SERVICE_NAME}{resource_postfix}'
-
-
-def _fetch_config_from_identity_service() -> Tuple[str, str]:
-    payload = {'service_name': SERVICE_NAME, 'password': SERVICE_SECRET}
-    response = requests.post(
-        SERVER_IDENTITY_URL, json=payload, verify=False
+def _fetch_config_from_identity_service() -> ServiceJWT:
+    client = ServerIdentityClient(
+        server_identity_specs=IDENTITY_SERVICE_SPECS
     )
-    if response.status_code == 200:
-        logging.info('Obtained access token and token secret.')
-        content = response.json()
-        return content['token_secret'], content['service_access_token']
-    else:
-        content = response.json()
-        logging.error(content)
-        sleep(5)
-        return _fetch_config_from_identity_service()
-
-
-def fetch_port() -> int:
-    headers = {'Authorization': f'Bearer {INTER_SERVICES_TOKEN}'}
-    payload = {'service_names': [SERVICE_NAME]}
-    response = requests.get(
-        DISCOVERY_URL, headers=headers, json=payload, verify=False
+    return client.obtain_service_jwt_safely(
+        service_name=SERVICE_NAME,
+        service_secret=SERVICE_SECRET
     )
-    if response.status_code == 200:
-        response_content = response.json()
-        return _fetch_port_from_response(response_content=response_content)
-    else:
-        content = response.json()
-        logging.error(content)
-        sleep(5)
-        return fetch_port()
 
 
-def _fetch_port_from_response(response_content: dict) -> int:
-    services_found = response_content.get('services_found', [])
-    services_matching = list(filter(
-        lambda srv_desc: srv_desc['service_name'] == SERVICE_NAME,
-        services_found
-    ))
-    if len(services_matching) != 1:
-        raise RuntimeError('Cannot get proper response from discovery service.')
-    return services_matching[0]['service_port']
+def _fetch_port() -> int:
+    client = DiscoveryServiceClient(
+        discovery_service_specs=DISCOVERY_SERVICE_SPECS,
+        service_token=INTER_SERVICES_TOKEN
+    )
+    discovery_info = client.obtain_discovery_info_safely(
+        service_names=[SERVICE_NAME]
+    )
+    service_info = discovery_info.get(SERVICE_NAME)
+    if service_info is None:
+        raise RuntimeError(
+            f"Could not fetch data about {SERVICE_NAME} from discovery service"
+        )
+    return service_info.port
 
 
 api = create_api()
 
 
 if __name__ == '__main__':
-    port = fetch_port()
+    port = _fetch_port()
     app.run(host='0.0.0.0', port=port, ssl_context='adhoc')

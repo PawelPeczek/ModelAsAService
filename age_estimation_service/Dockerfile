@@ -21,6 +21,10 @@ RUN git clone https://github.com/PawelPeczek/AgeEstimator.git
 WORKDIR AgeEstimator
 RUN python -m pip install .
 WORKDIR /
+RUN git clone https://github.com/PawelPeczek/ModelAsAService.git
+WORKDIR ModelAsAService/pipeline_sdk
+RUN pip install .
+WORKDIR /
 COPY ./requirements.txt project/requirements.txt
 RUN python -m pip install -r project/requirements.txt
 

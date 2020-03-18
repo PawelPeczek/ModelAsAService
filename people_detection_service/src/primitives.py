@@ -55,4 +55,5 @@ class BoundingBox:
         )
 
 
+
 InferenceResults = List[BoundingBox]

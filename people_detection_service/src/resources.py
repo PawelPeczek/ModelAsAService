@@ -6,6 +6,7 @@ from flask_jwt_extended import jwt_required
 from flask_restful import Resource
 import numpy as np
 import cv2 as cv
+from pipeline_sdk.utils import image_from_str
 from tensorflow.python.keras import Model
 import tensorflow as tf
 from tensorflow.python.keras.backend import set_session
@@ -36,8 +37,7 @@ class PeopleDetection(Resource):
     def post(self) -> Response:
         if 'image' not in request.files:
             return make_response({'msg': 'Field named "image" required.'}, 500)
-        data = np.fromstring(request.files['image'].read(), dtype=np.uint8)
-        image = cv.imdecode(data, cv.IMREAD_COLOR)
+        image = image_from_str(raw_image=request.files['image'].read())
         results = self.__infer_from_image(image=image)
         return make_response({'people': results}, 200)
 

@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, TypeVar, Iterable, Callable
 
 import numpy as np
 import cv2 as cv
@@ -6,16 +6,23 @@ import cv2 as cv
 from ..primitives import BoundingBox
 
 
-def draw_bbox(input_image: np.ndarray,
-              people_detection: BoundingBox,
+T = TypeVar('T')
+
+
+def draw_bbox(bounding_box: BoundingBox,
+              input_image: np.ndarray,
               color: Tuple[int, int, int],
               thickness: int = 3
-              ) -> np.ndarray:
+              ) -> None:
     cv.rectangle(
         img=input_image,
-        pt1=people_detection.left_top.to_tuple(),
-        pt2=people_detection.right_bottom.to_tuple(),
+        pt1=bounding_box.left_top.to_tuple(),
+        pt2=bounding_box.right_bottom.to_tuple(),
         color=color,
         thickness=thickness
     )
-    return input_image
+
+
+def for_each(iterable: Iterable[T], side_effect: Callable[[T], None]) -> None:
+    for element in iterable:
+        side_effect(element)

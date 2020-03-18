@@ -1,10 +1,11 @@
+from functools import partial
 from typing import List, Tuple
 
 import numpy as np
 
 from ..config import PEOPLE_DETECTION_COLOR, FACE_DETECTION_COLOR
 from ..primitives import BoundingBox
-from .utils import draw_bbox
+from .utils import draw_bbox, for_each
 
 
 def draw_people_detections(image: np.ndarray,
@@ -32,12 +33,10 @@ def draw_detections(image: np.ndarray,
                     color: Tuple[int, int, int]
                     ) -> np.ndarray:
     image = image.copy()
-    for people_detection in detections:
-        image = draw_bbox(
-            input_image=image,
-            people_detection=people_detection,
-            color=color
-        )
+    place_bbbox = partial(
+        draw_bbox, input_image=image, color=color
+    )
+    for_each(iterable=detections, side_effect=place_bbbox)
     return image
 
 
