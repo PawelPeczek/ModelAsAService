@@ -7,7 +7,7 @@ PyJWT==1.7.1
 SQLAlchemy-Utils==0.36.1
 requests==2.22.0
 numpy==1.18.1
-opencv-python==4.1.2.30
+opencv-python==4.2.0.32
 pika==1.1.0
 retina_face_net==0.1.0
 torch==1.4.0
