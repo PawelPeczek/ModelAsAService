@@ -9,7 +9,7 @@ requests==2.22.0
 numpy==1.18.1
 opencv-python==4.1.2.30
 pika==1.1.0
-tensorflow==1.13.1
+tensorflow==2.7.2
 keras-retinanet==0.5.1
 Flask-JWT-Extended==3.24.1
 pipeline-sdk==0.1.0
